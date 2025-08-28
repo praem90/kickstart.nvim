@@ -88,7 +88,26 @@ return {
 
       -- You can provide additional configuration to the handlers,
       -- see mason-nvim-dap README for more information
-      handlers = {},
+      handlers = {
+        function(config)
+          -- all sources with no handler get passed here
+
+          -- Keep original functionality
+          require('mason-nvim-dap').default_setup(config)
+        end,
+        php = function(config)
+          table.insert(config.configurations, {
+            type = 'php',
+            request = 'launch',
+            name = 'PHP: Listen for lab-api',
+            port = 9003,
+            pathMappings = {
+              ['/hub/services/lab-api'] = vim.fn.getcwd(),
+            },
+          })
+          require('mason-nvim-dap').default_setup(config) -- don't forget this!
+        end,
+      },
 
       -- You'll need to check that you have the required things installed
       -- online, please don't ask me how to install them :)
