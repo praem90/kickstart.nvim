@@ -11,19 +11,24 @@ return {
       'DBUIAddConnection',
       'DBUIFindBuffer',
     },
-    config = function()
-      vim.print 'Configuring db-ui'
+    config = function() end,
+    init = function()
+      -- Your DBUI configuration
+      vim.g.db_ui_use_nerd_fonts = 1
       vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufEnter' }, {
         pattern = '*.dbout',
         callback = function()
           vim.api.nvim_set_option_value('foldenable', false, {})
-          vim.print 'Disabled foldenable for .dbout files'
         end,
       })
-    end,
-    init = function()
-      -- Your DBUI configuration
-      vim.g.db_ui_use_nerd_fonts = 1
+      vim.keymap.set('n', '<leader>du', function()
+        vim.cmd.tabnew()
+        vim.cmd.DBUIToggle()
+      end, {})
+      vim.keymap.set('n', '<leader>dc', function()
+        vim.cmd.tabclose()
+        vim.cmd.DBUIToggle()
+      end, {})
     end,
   },
 }

@@ -856,7 +856,10 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'path', 'snippets', 'lazydev', 'buffer' },
+        per_filetype = {
+          sql = { 'dadbod', 'snippets', 'buffer' },
+        },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
           dadbod = { name = 'Dadbod', module = 'vim_dadbod_completion.blink' },
@@ -1005,6 +1008,8 @@ require('lazy').setup({
   require 'kickstart.plugins.db', -- vim-dadbod-ui
 
   require 'kickstart.plugins.debug', -- NVIM DAP
+
+  require 'kickstart.plugins.rest-client', -- REST Client like Postman
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
