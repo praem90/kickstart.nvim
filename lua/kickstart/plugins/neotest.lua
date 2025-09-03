@@ -11,21 +11,27 @@ return {
       'praem90/neotest-docker-phpunit.nvim',
       'rouge8/neotest-rust',
     },
+    requires = {
+      'olimorris/neotest-phpunit',
+    },
     config = function()
       require('neotest').setup {
+        log_level = vim.log.levels.OFF,
         adapters = {
           -- require 'neotest-go',
           -- require 'neotest-rust',
-          -- require 'neotest-phpunit',
-          require('neotest-docker-phpunit').setup {
-            phpunit_cmd = '/Users/praem90/personal/neotest-docker-phpunit/target/release/neotest-docker-phpunit',
-            docker_phpunit = {
-              ['/Users/praem90/projects/hub/services/lab-api'] = {
-                container = 'lab-api',
-                volume = '/Users/praem90/projects/hub/services/lab-api:/hub/services/lab-api',
-              },
-            },
+          require 'neotest-phpunit' {
+            filter_dirs = { 'vendor' },
           },
+          -- require('neotest-docker-phpunit').setup {
+          --   phpunit_cmd = '/Users/praem90/personal/neotest-docker-phpunit/target/release/neotest-docker-phpunit',
+          --   docker_phpunit = {
+          --     ['/Users/praem90/projects/hub/services/lab-api'] = {
+          --       container = 'lab-api',
+          --       volume = '/Users/praem90/projects/hub/services/lab-api:/hub/services/lab-api',
+          --     },
+          --   },
+          -- },
         },
       }
 

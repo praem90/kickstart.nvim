@@ -110,6 +110,8 @@ vim.o.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 
+vim.o.foldenable = false
+
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -984,7 +986,7 @@ require('lazy').setup({
       vim.keymap.set('n', 'gs', '<cmd>G<CR>')
     end,
   },
-  { 'github/copilot.vim' },
+  -- { 'github/copilot.vim' },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -1001,7 +1003,7 @@ require('lazy').setup({
   -- require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
-  require 'kickstart.plugins.avente', -- AI Agent
+  -- require 'kickstart.plugins.avente', -- AI Agent
 
   require 'kickstart.plugins.neotest', -- Neotest
 
@@ -1016,6 +1018,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   -- { import = 'custom.plugins' },
+  require 'custom.plugins.init',
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
