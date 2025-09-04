@@ -9,5 +9,8 @@ return {
       'nvim-lua/plenary.nvim',
       'MunifTanjim/nui.nvim',
     },
+    config = function()
+      require('custom.plugins.git').setup()
+    end,
   },
 }
