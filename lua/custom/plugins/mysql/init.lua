@@ -1,5 +1,5 @@
 local Split = require 'nui.split'
-local nio = require 'nio'
+local Job = require 'plenary.job'
 local pickers = require 'telescope.pickers'
 local finders = require 'telescope.finders'
 local conf = require('telescope.config').values
@@ -36,19 +36,15 @@ local M = {}
 
 M.connId = nil
 
-M.database = nil
-
 M.databases = nil
 
-M.tables = nil
+M.active_connections = {}
 
 M.get_connections = function()
   return {
-    { name = 'Local', host = '127.0.0.1', port = 3306, user = 'root', password = 'hunter2' },
+    { name = 'Local', host = '127.0.0.1', port = 3306, user = 'root', password = 'hunter2', database = 'quartzy_development' },
   }
 end
-
-M.active_connections = {}
 
 M.execute = function(opts, cb, onerr)
   local args = { '-h', M.active_connections[M.connId].host, '--protocol', 'tcp', '--binary-as-hex', '-e', opts.sql }
@@ -73,24 +69,24 @@ M.execute = function(opts, cb, onerr)
     table.insert(args, '--skip-column-names')
   end
 
-  nio.run(function()
-    local p = nio.process.run { cmd = 'mysql', args = args, cwd = vim.fn.getcwd() }
-    local status = p.result()
-    print('mysql exec exit code' .. status)
-
-    if status == 0 then
-      cb(p.stdout.read())
-    end
-
-    if onerr ~= nil then
-      onerr(p.stderr.read())
-    end
-  end)
+  Job:new({
+    command = 'mysql',
+    args = args,
+    cwd = vim.fn.getcwd(),
+    on_exit = function(j, return_val)
+      if return_val == 0 then
+        cb(j:result())
+      else
+        onerr(j:stderr_result())
+      end
+    end,
+  }):start()
 end
 
 M.open = function(opts)
   opts = opts or {}
   local pickers_opts = require('telescope.themes').get_dropdown(opts.picker or {})
+  M.parent_win = vim.api.nvim_get_current_win()
 
   open_picker(M.get_connections(), {
     title = 'Connections',
@@ -104,7 +100,12 @@ M.open = function(opts)
     callback = function(selection)
       M.active_connections[selection.value.name] = selection.value
       M.connId = selection.value.name
-      M.pick_database()
+
+      if selection.value.database ~= nil then
+        M.create_buffers()
+      else
+        M.pick_database()
+      end
     end,
   })
 end
@@ -122,11 +123,7 @@ M.pick_database = function(opts)
 
   M.execute(
     { sql = 'show databases;', columns = false, table = false },
-    vim.schedule_wrap(function(output)
-      local databases = {}
-      for line in output:gmatch '[^\r\n]+' do
-        table.insert(databases, line)
-      end
+    vim.schedule_wrap(function(databases)
       M.active_connections[M.connId].databases = databases
       open_picker(databases, { callback = callback })
     end)
@@ -141,15 +138,7 @@ M.open_tables = function()
 
   M.execute(
     { sql = 'show tables', columns = false, table = false },
-    vim.schedule_wrap(function(output)
-      local max_width = 0
-      local tables = {}
-      for line in output:gmatch '[^\r\n]+' do
-        table.insert(tables, line)
-        if line:len() > max_width then
-          max_width = line:len()
-        end
-      end
+    vim.schedule_wrap(function(tables)
       M.active_connections[M.connId].tables = tables
     end)
   )
@@ -170,14 +159,18 @@ M.open_active_connections = function()
     return
   end
 
-  open_picker(connections)
+  open_picker(connections, {
+    callback = function(entry)
+      M.connId = entry[1]
+    end,
+  })
 end
 
 M.create_buffers = function()
   if M.query_split == nil then
     M.query_split = {
       bufnr = vim.api.nvim_create_buf(false, true),
-      win = vim.api.nvim_get_current_win(),
+      win = M.parent_win,
     }
     vim.api.nvim_set_option_value('filetype', 'mysql', { buf = M.query_split.bufnr })
     vim.api.nvim_win_set_buf(M.query_split.win, M.query_split.bufnr)
@@ -195,18 +188,22 @@ M.create_buffers = function()
   end
 
   vim.keymap.set('n', '<CR>', function()
-    print 'executing query'
     local lines = vim.api.nvim_buf_get_lines(M.query_split.bufnr, 0, -1, false)
     M.output_split:mount()
     M.execute(
       { sql = table.concat(lines, '\n') },
       vim.schedule_wrap(function(output)
-        local lines = {}
-        for line in output:gmatch '[^\r\n]+' do
-          table.insert(lines, line)
+        if type(output) == 'string' then
+          local lines = {}
+          for line in output:gmatch '[^\r\n]+' do
+            table.insert(lines, line)
+          end
+        else
+          lines = output
         end
 
         vim.api.nvim_buf_set_lines(M.output_split.bufnr, 0, -1, false, lines)
+        vim.api.nvim_set_option_value('modified', false, { buf = M.output_split.bufnr })
       end),
       vim.schedule_wrap(function(err)
         vim.print(vim.inspect(err))

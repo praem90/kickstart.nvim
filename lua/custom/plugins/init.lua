@@ -8,7 +8,6 @@ return {
     dependencies = {
       'nvim-lua/plenary.nvim',
       'MunifTanjim/nui.nvim',
-      'nvim-noetest/nvim-nio',
     },
     config = function()
       require('custom.plugins.git').setup()
