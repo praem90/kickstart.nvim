@@ -7,7 +7,7 @@ local write_text = function(split, data)
   for line in data:gmatch '[^\r\n]+' do
     table.insert(lines, line)
   end
-  local row, col = unpack(vim.api.nvim_win_get_cursor(split.winid))
+  local row = unpack(vim.api.nvim_win_get_cursor(split.winid))
   vim.api.nvim_buf_set_lines(split.bufnr, row - 1, row - 1, false, lines)
 end
 
@@ -17,7 +17,7 @@ M.init = function() end
 
 M.run = function(args)
   local split = Split {
-    relative = 'win',
+    relative = 'editor',
     position = 'bottom',
     size = '20%',
     enter = false,

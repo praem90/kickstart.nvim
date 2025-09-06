@@ -8,9 +8,17 @@ return {
     dependencies = {
       'nvim-lua/plenary.nvim',
       'MunifTanjim/nui.nvim',
+      'nvim-noetest/nvim-nio',
     },
     config = function()
       require('custom.plugins.git').setup()
     end,
+  },
+  {
+    dir = '/Users/praem90/personal/kickstart.nvim/lua/custom/plugins/mysql/',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+    },
   },
 }
